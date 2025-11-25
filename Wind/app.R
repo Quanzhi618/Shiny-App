@@ -29,6 +29,13 @@ server <- function(input, output) {
   dataInput <- reactive({
     req(input$file1)  # Ensure the file is uploaded before proceeding
     read.csv(input$file1$datapath)  # Read the uploaded CSV file
+    
+    # Clean the data by removing NA values and ensuring valid wind direction
+    data_clean <- data %>%
+      filter(!is.na(wind_speed), !is.na(wind_direction)) %>%  # Remove NA values
+      filter(wind_direction >= 0 & wind_direction <= 360)  # Ensure wind direction is within range
+    
+    return(data_clean)  # Return cleaned data
   })
   
   # Generate wind rose plot
