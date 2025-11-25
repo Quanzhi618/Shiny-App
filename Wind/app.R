@@ -22,6 +22,13 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output) {
+  
+  # Reactive expression to read the uploaded data
+  dataInput <- reactive({
+    req(input$file1)  # Ensure the file is uploaded before proceeding
+    read.csv(input$file1$datapath)  # Read the uploaded CSV file
+  })
+  
   # Placeholder for logic later
 }
 
