@@ -1,7 +1,7 @@
 # Load necessary libraries
 library(shiny)
 library(openair)
-
+library(dplyr)
 
 # Define UI
 ui <- fluidPage(
@@ -38,7 +38,19 @@ server <- function(input, output) {
     windRose(data, ws = "wind_speed", wd = "wind_direction", angle = 30)
   })
   
-  # Placeholder for logic later
+  # Generate frequency and relative frequency table
+  output$freqTable <- renderTable({
+    data <- dataInput()  # Get the uploaded data
+    
+    # Calculate frequency and relative frequency of wind directions
+    freq_data <- data %>%
+      group_by(wind_direction) %>%   # Group by wind direction
+      summarise(frequency = n()) %>%  # Count occurrences in each wind direction
+      mutate(relative_frequency = frequency / sum(frequency) * 100)  # Calculate relative frequency
+    
+    # Return the resulting table
+    freq_data
+  })
 }
 
 # Run the Shiny app
