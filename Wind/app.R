@@ -9,7 +9,7 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      fileInput("file1", "Choose CSV File", accept = ".csv")
+      fileInput("file1", "Choose CSV File", accept = ".csv")  # File input
     ),
     
     mainPanel(
@@ -28,7 +28,20 @@ server <- function(input, output) {
   # Reactive expression to read the uploaded data
   dataInput <- reactive({
     req(input$file1)  # Ensure the file is uploaded before proceeding
-    read.csv(input$file1$datapath)  # Read the uploaded CSV file
+    
+    # Attempt to read the file with different options
+    data <- tryCatch({
+      # Try reading with default read.csv (comma-separated)
+      read.csv(input$file1$datapath)
+    }, error = function(e) {
+      # If an error occurs, attempt to read with read.csv2 (semicolon-separated)
+      read.csv2(input$file1$datapath)
+    })
+    
+    # Check if data is a valid data frame
+    if (!is.data.frame(data)) {
+      stop("Uploaded file is not a valid data frame.")
+    }
     
     # Clean the data by removing NA values and ensuring valid wind direction
     data_clean <- data %>%
@@ -40,16 +53,14 @@ server <- function(input, output) {
   
   # Generate wind rose plot
   output$windRosePlot <- renderPlot({
-    data <- dataInput()  # Get the uploaded data
+    data <- dataInput()  # Get the cleaned data
     req("wind_speed" %in% colnames(data), "wind_direction" %in% colnames(data))
     windRose(data, ws = "wind_speed", wd = "wind_direction", angle = 30)
   })
   
   # Generate frequency and relative frequency table
   output$freqTable <- renderTable({
-    data <- dataInput()  # Get the uploaded data
-    
-    # Calculate frequency and relative frequency of wind directions
+    data <- dataInput()  # Get the cleaned data
     freq_data <- data %>%
       group_by(wind_direction) %>%   # Group by wind direction
       summarise(frequency = n()) %>%  # Count occurrences in each wind direction
