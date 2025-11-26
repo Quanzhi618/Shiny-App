@@ -2,6 +2,7 @@
 library(shiny)
 library(openair)
 library(dplyr)
+library(ggplot2)
 
 # Define UI
 ui <- fluidPage(
@@ -15,8 +16,12 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("Wind Rose", plotOutput("windRosePlot")),
-        tabPanel("Frequency Table", tableOutput("freqTable")),
-        tabPanel("Footprint Analysis", textOutput("footprintAnalysis"))
+        tabPanel("Frequency Table", 
+                 tableOutput("freqTable"),
+                 plotOutput("freqPlot")  # Add frequency plot
+        ),
+        tabPanel("Footprint Analysis", textOutput("footprintAnalysis"),
+                 plotOutput("footprintPlot"))  # Add footprint plot
       )
     )
   )
@@ -44,7 +49,7 @@ server <- function(input, output) {
     }
     
     # Clean the data by removing NA values and ensuring valid wind direction
-    data_clean <- data %>%
+    data_clean <- data %>% 
       filter(!is.na(wind_speed), !is.na(wind_direction)) %>%  # Remove NA values
       filter(wind_direction >= 0 & wind_direction <= 360)  # Ensure wind direction is within range
     
@@ -68,6 +73,47 @@ server <- function(input, output) {
     
     # Return the resulting table
     freq_data
+  })
+  
+  # Generate frequency plot (bar chart of wind direction frequencies)
+  output$freqPlot <- renderPlot({
+    data <- dataInput()  # Get the cleaned data
+    freq_data <- data %>%
+      group_by(wind_direction) %>%
+      summarise(frequency = n())
+    
+    ggplot(freq_data, aes(x = wind_direction, y = frequency)) +
+      geom_bar(stat = "identity", fill = "skyblue") +
+      theme_minimal() +
+      labs(title = "Wind Direction Frequency", x = "Wind Direction (°)", y = "Frequency")
+  })
+  
+  # Footprint Analysis logic (rich analysis with mean, sd, mode, and visualization)
+  output$footprintAnalysis <- renderText({
+    data <- dataInput()  # Get the cleaned data
+    
+    # Calculate additional statistics
+    avg_wind_speed <- mean(data$wind_speed, na.rm = TRUE)
+    sd_wind_speed <- sd(data$wind_speed, na.rm = TRUE)
+    avg_wind_direction <- mean(data$wind_direction, na.rm = TRUE)
+    mode_wind_direction <- as.numeric(names(sort(table(data$wind_direction), decreasing = TRUE))[1])
+    
+    # Return analysis text
+    paste("Average Wind Speed: ", round(avg_wind_speed, 2), " units\n",
+          "Standard Deviation of Wind Speed: ", round(sd_wind_speed, 2), " units\n",
+          "Average Wind Direction: ", round(avg_wind_direction, 2), " degrees\n",
+          "Mode Wind Direction: ", round(mode_wind_direction, 2), " degrees")
+  })
+  
+  # Footprint Analysis plot (wind speed and wind direction distributions)
+  output$footprintPlot <- renderPlot({
+    data <- dataInput()  # Get the cleaned data
+    
+    # Plot wind speed distribution
+    ggplot(data, aes(x = wind_speed)) +
+      geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+      theme_minimal() +
+      labs(title = "Wind Speed Distribution", x = "Wind Speed", y = "Frequency")
   })
 }
 
