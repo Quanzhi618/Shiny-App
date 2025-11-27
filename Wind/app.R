@@ -1,4 +1,4 @@
-# Load necessary libraries
+# Load necessary libraries 
 library(shiny)
 library(openair)
 library(dplyr)
@@ -48,10 +48,14 @@ server <- function(input, output) {
       stop("Uploaded file is not a valid data frame.")
     }
     
-    # Clean the data by removing NA values and ensuring valid wind direction
-    data_clean <- data %>% 
-      filter(!is.na(wind_speed), !is.na(wind_direction)) %>%  # Remove NA values
-      filter(wind_direction >= 0 & wind_direction <= 360)  # Ensure wind direction is within range
+    # Clean the data by replacing NA values with 0 for wind_speed and wind_direction
+    data_clean <- data %>%
+      mutate(
+        wind_speed = ifelse(is.na(wind_speed), 0, wind_speed),  # Replace NA in wind_speed with 0
+        wind_direction = ifelse(is.na(wind_direction), 0, wind_direction)  # Replace NA in wind_direction with 0
+      ) %>% 
+      filter(wind_direction >= 0 & wind_direction <= 360) %>%  # Ensure wind direction is within range
+      filter(wind_speed >= 0)  # Ensure wind speed is non-negative
     
     return(data_clean)  # Return cleaned data
   })
@@ -85,7 +89,15 @@ server <- function(input, output) {
     ggplot(freq_data, aes(x = wind_direction, y = frequency)) +
       geom_bar(stat = "identity", fill = "skyblue") +
       theme_minimal() +
-      labs(title = "Wind Direction Frequency", x = "Wind Direction (°)", y = "Frequency")
+      labs(
+        title = "Wind Direction Frequency", 
+        x = "Wind Direction (°)", 
+        y = "Frequency (Count)"  # Add units to the y-axis
+      ) +
+      theme(
+        axis.title.y = element_text(angle = 0),  # Rotate y-axis title to horizontal
+        plot.title = element_text(hjust = 0.5, vjust = -1)  # Move title to bottom of the plot
+      )
   })
   
   # Footprint Analysis logic
@@ -109,11 +121,18 @@ server <- function(input, output) {
   output$footprintPlot <- renderPlot({
     data <- dataInput()  # Get the cleaned data
     
-    # Plot wind speed distribution
     ggplot(data, aes(x = wind_speed)) +
       geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
       theme_minimal() +
-      labs(title = "Wind Speed Distribution", x = "Wind Speed", y = "Frequency")
+      labs(
+        title = "Wind Speed Distribution", 
+        x = "Wind Speed (m/s)",  # Add units to the x-axis
+        y = "Frequency (Count)"  # Add units to the y-axis
+      ) +
+      theme(
+        axis.title.y = element_text(angle = 0),  # Rotate y-axis title to horizontal
+        plot.title = element_text(hjust = 0.5, vjust = -1)  # Move title to bottom of the plot
+      )
   })
 }
 
