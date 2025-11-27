@@ -3,6 +3,7 @@ library(shiny)
 library(openair)
 library(dplyr)
 library(ggplot2)
+library(stats)  # For statistical tests
 
 # Define UI
 ui <- fluidPage(
@@ -13,7 +14,10 @@ ui <- fluidPage(
       fileInput("file1", "Choose CSV File", accept = ".csv"),  # File input
       sliderInput("angle", "Adjust Wind Rose Angle", min = 10, max = 60, value = 30, step = 5),  # Angle slider
       selectInput("plotType", "Select Plot Type", choices = c("Bar Chart", "Line Chart")),  # Wind speed plot type
-      downloadButton("downloadData", "Download Processed Data")  # Data download button
+      downloadButton("downloadData", "Download Processed Data"),  # Data download button
+      
+      # Statistical tests and analysis
+      checkboxInput("linearRegression", "Perform Linear Regression", FALSE)  # Linear regression checkbox
     ),
     
     mainPanel(
@@ -24,7 +28,8 @@ ui <- fluidPage(
                  plotOutput("freqPlot")
         ),
         tabPanel("Footprint Analysis", textOutput("footprintAnalysis"),
-                 plotOutput("footprintPlot"))
+                 plotOutput("footprintPlot")),
+        tabPanel("Statistical Results", verbatimTextOutput("statisticalResults"))  # Display statistical test results
       )
     )
   )
@@ -154,6 +159,22 @@ server <- function(input, output) {
         axis.title.y = element_text(angle = 0, vjust = 0.5),  # Y axis title horizontal
         plot.title = element_text(hjust = 0.5, vjust = -1)  # Title below the plot
       )
+  })
+  
+  # Statistical results (Linear Regression)
+  output$statisticalResults <- renderPrint({
+    data <- dataInput()  # Get the cleaned data
+    
+    results <- list()
+    
+    # Linear regression (predict wind speed from wind direction)
+    if (input$linearRegression) {
+      lm_model <- lm(wind_speed ~ wind_direction, data = data)
+      results$linear_regression <- summary(lm_model)
+    }
+    
+    # Return the results
+    results
   })
   
   # Allow the user to download the processed data
