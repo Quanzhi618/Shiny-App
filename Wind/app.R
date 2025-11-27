@@ -1,4 +1,4 @@
-# Load necessary libraries 
+# Load necessary libraries
 library(shiny)
 library(openair)
 library(dplyr)
@@ -10,7 +10,10 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      fileInput("file1", "Choose CSV File", accept = ".csv")  # File input
+      fileInput("file1", "Choose CSV File", accept = ".csv"),  # File input
+      sliderInput("angle", "Adjust Wind Rose Angle", min = 10, max = 60, value = 30, step = 5),  # Angle slider
+      selectInput("plotType", "Select Plot Type", choices = c("Bar Chart", "Line Chart")),  # Wind speed plot type
+      downloadButton("downloadData", "Download Processed Data")  # Data download button
     ),
     
     mainPanel(
@@ -18,10 +21,10 @@ ui <- fluidPage(
         tabPanel("Wind Rose", plotOutput("windRosePlot")),
         tabPanel("Frequency Table", 
                  tableOutput("freqTable"),
-                 plotOutput("freqPlot")  # Add frequency plot
+                 plotOutput("freqPlot")
         ),
         tabPanel("Footprint Analysis", textOutput("footprintAnalysis"),
-                 plotOutput("footprintPlot"))  # Add footprint plot
+                 plotOutput("footprintPlot"))
       )
     )
   )
@@ -30,7 +33,7 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   
-  # Reactive expression to read the uploaded data
+  # Reactive expression to read and clean the uploaded data
   dataInput <- reactive({
     req(input$file1)  # Ensure the file is uploaded before proceeding
     
@@ -60,11 +63,13 @@ server <- function(input, output) {
     return(data_clean)  # Return cleaned data
   })
   
-  # Generate wind rose plot
+  # Generate wind rose plot with dynamic angle adjustment
   output$windRosePlot <- renderPlot({
     data <- dataInput()  # Get the cleaned data
     req("wind_speed" %in% colnames(data), "wind_direction" %in% colnames(data))
-    windRose(data, ws = "wind_speed", wd = "wind_direction", angle = 30)
+    
+    # Generate the wind rose plot with the adjusted angle
+    windRose(data, ws = "wind_speed", wd = "wind_direction", angle = input$angle)
   })
   
   # Generate frequency and relative frequency table
@@ -79,25 +84,41 @@ server <- function(input, output) {
     freq_data
   })
   
-  # Generate frequency plot (bar chart of wind direction frequencies)
+  # Generate frequency plot (bar chart or line chart of wind direction frequencies)
   output$freqPlot <- renderPlot({
     data <- dataInput()  # Get the cleaned data
     freq_data <- data %>%
       group_by(wind_direction) %>%
       summarise(frequency = n())
     
-    ggplot(freq_data, aes(x = wind_direction, y = frequency)) +
-      geom_bar(stat = "identity", fill = "skyblue") +
-      theme_minimal() +
-      labs(
-        title = "Wind Direction Frequency", 
-        x = "Wind Direction (°)", 
-        y = "Frequency (Count)"  # Add units to the y-axis
-      ) +
-      theme(
-        axis.title.y = element_text(angle = 0),  # Rotate y-axis title to horizontal
-        plot.title = element_text(hjust = 0.5, vjust = -1)  # Move title to bottom of the plot
-      )
+    # Choose plot type (bar or line chart) based on user input
+    if (input$plotType == "Bar Chart") {
+      ggplot(freq_data, aes(x = wind_direction, y = frequency)) +
+        geom_bar(stat = "identity", fill = "skyblue") +
+        theme_minimal() +
+        labs(
+          title = "Wind Direction Frequency", 
+          x = "Wind Direction (°)",
+          y = "Frequency (Count)"
+        ) +
+        theme(
+          axis.title.y = element_text(angle = 0, vjust = 0.5),  # Y axis title horizontal
+          plot.title = element_text(hjust = 0.5, vjust = -1)  # Title below the plot
+        )
+    } else {
+      ggplot(freq_data, aes(x = wind_direction, y = frequency)) +
+        geom_line() +
+        theme_minimal() +
+        labs(
+          title = "Wind Direction Frequency", 
+          x = "Wind Direction (°)",
+          y = "Frequency (Count)"
+        ) +
+        theme(
+          axis.title.y = element_text(angle = 0, vjust = 0.5),  # Y axis title horizontal
+          plot.title = element_text(hjust = 0.5, vjust = -1)  # Title below the plot
+        )
+    }
   })
   
   # Footprint Analysis logic
@@ -130,10 +151,20 @@ server <- function(input, output) {
         y = "Frequency (Count)"  # Add units to the y-axis
       ) +
       theme(
-        axis.title.y = element_text(angle = 0),  # Rotate y-axis title to horizontal
-        plot.title = element_text(hjust = 0.5, vjust = -1)  # Move title to bottom of the plot
+        axis.title.y = element_text(angle = 0, vjust = 0.5),  # Y axis title horizontal
+        plot.title = element_text(hjust = 0.5, vjust = -1)  # Title below the plot
       )
   })
+  
+  # Allow the user to download the processed data
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("cleaned_wind_data.csv")
+    },
+    content = function(file) {
+      write.csv(dataInput(), file)
+    }
+  )
 }
 
 # Run the Shiny app
