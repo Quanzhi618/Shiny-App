@@ -88,7 +88,7 @@ server <- function(input, output) {
       labs(title = "Wind Direction Frequency", x = "Wind Direction (°)", y = "Frequency")
   })
   
-  # Footprint Analysis logic (rich analysis with mean, sd, mode, and visualization)
+  # Footprint Analysis logic
   output$footprintAnalysis <- renderText({
     data <- dataInput()  # Get the cleaned data
     
