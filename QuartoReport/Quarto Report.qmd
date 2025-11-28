@@ -1,0 +1,98 @@
+---
+title: "Quarto Report"
+author: "2574934"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+# Introduction
+
+This study addresses the problem of analyzing wind speed and direction data to gain insights into the environmental conditions of a given location. Understanding wind patterns is critical in various fields such as environmental studies, urban planning, and energy generation. The analysis in this report leverages data visualization and statistical techniques to explore wind data and perform linear regression analysis. The study aims to provide insights into wind distribution, its relationship with direction, and potential predictive modeling of wind speed.
+
+The study was conducted using a Shiny app developed for the analysis, which allows users to upload wind data, visualize wind roses, generate frequency plots, and perform statistical tests, including linear regression. The use of artificial intelligence (AI) tools, such as code debugging assistance from ChatGPT, is mentioned where relevant to ensure the accuracy and efficiency of the model implementation.
+
+# Methods
+
+## Shiny App
+
+The Shiny app developed for this study allows users to interactively explore wind speed and direction data. The app's purpose is to visualize the wind data and provide insights into the distribution of wind speed and direction. Key features of the app include:
+
+-   **File Input**: Users can upload a CSV file containing wind speed and direction data.
+-   **Wind Rose Plot**[@yang2022]: Users can adjust the angle of the wind rose plot to better visualize wind direction and speed distribution.
+-   **Frequency Table and Plot**[@huang2023]: The app generates a frequency table and plot (either bar chart or line chart) to visualize wind direction frequency.
+-   **Footprint Analysis**[@rannik2000a]: Users can see descriptive statistics such as the average wind speed, standard deviation, and the mode of wind direction.
+-   **Linear Regression**[@wang2021]: The app allows users to perform linear regression to examine the relationship between wind direction and wind speed.
+-   **Download Processed Data**: Users can download the cleaned data for further analysis.
+
+The app was developed using the R programming language and the Shiny framework. The following R packages were used:
+
+-   `shiny`: For developing the app interface and server logic.
+-   `openair`: For creating the wind rose plot and conducting air quality analyses.
+-   `dplyr`: For data manipulation and cleaning.
+-   `ggplot2`: For creating the frequency plots.
+-   `stats`: For performing linear regression and statistical analysis.
+
+Artificial intelligence tools, such as ChatGPT, were used for code debugging and verifying the accuracy of statistical methods.
+
+## Data
+
+The dataset used in this study consists of wind speed and direction data collected from various monitoring stations. Each entry contains two variables: `wind_speed` (in meters per second) and `wind_direction` (in degrees). The dataset is pre-processed to handle missing values, with missing wind speed and direction values replaced with zeros. The data is also filtered to ensure that wind directions are within the valid range (0-360 degrees) and that wind speeds are non-negative.
+
+# Results and Discussions
+
+## Wind Rose Plot
+
+The wind rose plot provides a graphical representation of wind speed and direction distribution. By adjusting the angle slider, users can modify the granularity of the wind direction sectors. The plot helps identify prevailing wind directions and the strength of winds from different directions.
+
+**Figure 1**: Wind rose plot with adjustable angle.
+
+![](fig/Wind%20Rose.png){width="377"}
+
+## Frequency Table and Plot
+
+The frequency table summarizes the number of occurrences of wind directions, while the relative frequency column shows the percentage of occurrences for each direction. The plot visualizes the distribution of wind directions either as a bar chart or a line chart, depending on the user's selection.
+
+**Figure 2**: Frequency plot of wind direction (bar chart).
+
+![](fig/Wind%20Direction%20Frequency%20Bar%20Chart.png){width="527"}
+
+**Figure 3**: Frequency plot of wind direction (line chart).
+
+![](fig/Wind%20Direction%20Frequency%20Line%20Chart.png){width="522"}
+
+## Footprint Analysis
+
+Descriptive statistics, such as the average wind speed and standard deviation, provide insights into the wind characteristics of the region. The mode of wind direction reveals the most common wind direction.
+
+**Figure 4**: Wind speed distribution histogram.
+
+![](fig/Wind%20Speed%20Distribution.png){width="536"}
+
+## Linear Regression
+
+Linear regression analysis is performed to investigate the relationship between wind speed and wind direction. The regression plot includes a red line representing the best-fit model.
+
+**Figure 5**: Linear regression plot of wind speed versus wind direction.
+
+![](fig/Linear%20Regression.png){width="527"}
+
+The regression model showed a significant relationship between wind direction and wind speed, with the R-squared value indicating the model's explanatory power.
+
+## Statistical Results
+
+The linear regression summary reveals the coefficients, p-values, and R-squared values for the relationship between wind direction and wind speed. These results can be used to predict wind speed based on direction.
+
+**Figure 6**: Statistical results of linear regression.
+
+![](fig/Linear%20Regression%20Results.png){width="497"}
+
+# Conclusion
+
+This study presents an interactive tool for analyzing wind speed and direction data, providing valuable insights into the wind characteristics of a given location. The Shiny app allows users to upload and clean data, visualize key metrics, and perform statistical analysis such as linear regression. The results can help in understanding prevailing wind patterns, which is valuable for various environmental and energy-related applications.
+
+# AI Disclosure
+
+In this study, AI tools were utilized to assist in code debugging and statistical method explanation. Specifically, ChatGPT was used to clarify concepts and provide suggestions for improving the code, ensuring the accuracy of data manipulation and statistical procedures. The results generated by these AI tools were verified manually to ensure consistency with standard statistical methods.
+
+# References
